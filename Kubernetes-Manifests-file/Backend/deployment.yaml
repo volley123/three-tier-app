@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: 
+metadata:
   name: api
   namespace: three-tier
-  labels: 
+  labels:
     role: api
     env: demo
-spec: 
+spec:
   replicas: 2
-  strategy: 
+  strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 25%
-  selector: 
+  selector:
     matchLabels:
       role: api
   template:
@@ -22,34 +22,38 @@ spec:
         role: api
     spec:
       containers:
-      - name: api
-        image: 423966983147.dkr.ecr.us-east-2.amazonaws.com/three-tier-backend-app:latest
-        imagePullPolicy: Always
-        env:
-          - name: MONGO_CONN_STR
-            value: mongodb://mongodb-svc:27017/expense?directConnection=true
-          - name: MONGO_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: mongo-sec
-                key: username
-          - name: MONGO_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: mongo-sec
-                key: password
-        ports:
-        - containerPort: 3500
-        livenessProbe: 
-          httpGet:
-            path: /ok
-            port: 3500
-          initialDelaySeconds: 2
-          periodSeconds: 5
-        readinessProbe:
-          httpGet:
-            path: /ok
-            port: 3500
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
+        - name: api
+          image: 423966983147.dkr.ecr.us-east-2.amazonaws.com/three-tier-backend-app:backend-v3
+          imagePullPolicy: Always
+          env:
+            - name: MYSQL_HOST
+              value: mysql-svc
+            - name: MYSQL_PORT
+              value: "3306" # Assuming MySQL default port is used
+            - name: MYSQL_DATABASE
+              value: todo
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-sec
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-sec
+                  key: password
+          ports:
+            - containerPort: 3500
+          livenessProbe:
+            httpGet:
+              path: /ok
+              port: 3500
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ok
+              port: 3500
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
