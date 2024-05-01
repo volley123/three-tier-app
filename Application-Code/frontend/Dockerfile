@@ -1,6 +1,7 @@
-FROM node:14
-WORKDIR /usr/src/app
-COPY package*.json ./
-RUN npm install
+FROM node:12.2.0-alpine
+WORKDIR app
 COPY . .
-CMD [ "npm", "start" ]
+RUN npm install
+RUN npm run test
+EXPOSE 8000
+CMD ["node","app.js"]
