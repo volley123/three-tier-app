@@ -1,25 +1,30 @@
-const mongoose = require("mongoose");
+const mysql = require('mysql');
 
 module.exports = async () => {
     try {
         const connectionParams = {
-            // user: process.env.MONGO_USERNAME,
-            // pass: process.env.MONGO_PASSWORD,
-            useNewUrlParser: true,
-            // useCreateIndex: true,
-            useUnifiedTopology: true,
+            host: process.env.MYSQL_HOST,
+            user: process.env.MYSQL_USERNAME,
+            password: process.env.MYSQL_PASSWORD,
+            database: process.env.MYSQL_DATABASE,
         };
-        const useDBAuth = process.env.USE_DB_AUTH || false;
-        if(useDBAuth){
-            connectionParams.user = process.env.MONGO_USERNAME;
-            connectionParams.pass = process.env.MONGO_PASSWORD;
-        }
-        await mongoose.connect(
-           process.env.MONGO_CONN_STR,
-           connectionParams
-        );
-        console.log("Connected to database.");
+
+        // Create a connection pool
+        const pool = mysql.createPool(connectionParams);
+
+        // Test the connection
+        pool.getConnection((err, connection) => {
+            if (err) {
+                console.error('Error connecting to MySQL:', err);
+                return;
+            }
+            console.log('Connected to MySQL database.');
+            connection.release(); // Release the connection
+        });
+
+        // Attach the connection pool to the global object for reuse
+        global.mysqlPool = pool;
     } catch (error) {
-        console.log("Could not connect to database.", error);
+        console.error('Could not connect to MySQL database.', error);
     }
 };

@@ -1,44 +1,41 @@
-const Task = require("../models/task");
 const express = require("express");
 const router = express.Router();
+const Task = require("../models/task");
 
-router.post("/", async (req, res) => {
-    try {
-        const task = await new Task(req.body).save();
-        res.send(task);
-    } catch (error) {
-        res.send(error);
-    }
+// Import MySQL model functions
+const { getAllTasks, createTask } = require("../models/tasks");
+
+// Create a new task
+router.post("/", (req, res) => {
+    const newTask = req.body;
+    createTask(newTask, (error, taskId) => {
+        if (error) {
+            res.status(500).json({ error: "Failed to create task" });
+            return;
+        }
+        res.status(201).json({ message: "Task created successfully", taskId });
+    });
 });
 
-router.get("/", async (req, res) => {
-    try {
-        const tasks = await Task.find();
-        res.send(tasks);
-    } catch (error) {
-        res.send(error);
-    }
+// Get all tasks
+router.get("/", (req, res) => {
+    getAllTasks((error, tasks) => {
+        if (error) {
+            res.status(500).json({ error: "Failed to fetch tasks" });
+            return;
+        }
+        res.json(tasks);
+    });
 });
 
-router.put("/:id", async (req, res) => {
-    try {
-        const task = await Task.findOneAndUpdate(
-            { _id: req.params.id },
-            req.body
-        );
-        res.send(task);
-    } catch (error) {
-        res.send(error);
-    }
+// Update a task
+router.put("/:id", (req, res) => {
+    // Update task code
 });
 
-router.delete("/:id", async (req, res) => {
-    try {
-        const task = await Task.findByIdAndDelete(req.params.id);
-        res.send(task);
-    } catch (error) {
-        res.send(error);
-    }
+// Delete a task
+router.delete("/:id", (req, res) => {
+    // Delete task code
 });
 
 module.exports = router;
