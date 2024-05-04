@@ -17,6 +17,17 @@ app.get('/ok', (req, res) => {
 // Routes for tasks
 const mysql = require('mysql2');
 
+// Connect to MySQL database
+const pool = mysql.createPool({
+  host: 'localhost',
+  user: 'mysql', // Updated MySQL username
+  password: 'password123', // Your MySQL password
+  database: 'todo',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
+
 // Get all tasks
 app.get("/api/tasks", (req, res) => {
     const sql = "SELECT * FROM tasks";
