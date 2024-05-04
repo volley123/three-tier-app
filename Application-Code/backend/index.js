@@ -1,69 +1,82 @@
-const tasks = require("./routes/tasks");
-const connection = require("./db");
-const cors = require("cors");
 const express = require("express");
 const app = express();
+const connection = require("./db"); // Assuming connection.js provides the pool
 
-// Connect to MySQL database
-connection();
+// Environment variable approach (recommended)
+require('dotenv').config();
 
-app.use(express.json());
-app.use(cors());
-
-app.get('/ok', (req, res) => {
-    res.status(200).send('ok')
+// Connect to MySQL database using environment variables
+connection.connect({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USERNAME,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+})
+.then(() => console.log("Connected to MySQL database successfully"))
+.catch((err) => {
+  console.error("Error connecting to MySQL database:", err);
+  process.exit(1); // Exit on connection error
 });
+
+// Function to execute a query with prepared statements
+const executeQuery = (sql, params) => {
+  return new Promise((resolve, reject) => {
+    connection.query(sql, params, (error, results) => {
+      if (error) {
+        console.error("Error executing query:", error);
+        reject(new Error("Database error")); // More generic error for response
+      } else {
+        resolve(results);
+      }
+    });
+  });
+};
 
 // Routes for tasks
-const mysql = require('mysql2');
-
-// Connect to MySQL database
-const pool = mysql.createPool({
-  host: '192.168.61.28',
-  user: 'mysql', // Updated MySQL username
-  password: 'password123', // Your MySQL password
-  database: 'todo',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+app.use(express.json()); // Parses JSON data in the request body
 
 // Get all tasks
-app.get("/api/tasks", (req, res) => {
+app.get("/api/tasks", async (req, res) => {
+  try {
     const sql = "SELECT * FROM tasks";
-    global.mysqlPool.query(sql, (error, results) => {
-        if (error) {
-            console.error("Error fetching tasks:", error);
-            return res.status(500).json({ error: "Failed to fetch tasks" });
-        }
-        res.json(results);
-    });
+    const results = await executeQuery(sql, []); // No parameters for this query
+    res.json(results);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).json({ error: "Failed to fetch tasks" }); // Generic error message
+  }
 });
 
 // Create a new task
-app.post("/api/tasks", (req, res) => {
+app.post("/api/tasks", async (req, res) => {
+  try {
     const { title, description } = req.body;
     const sql = "INSERT INTO tasks (title, description) VALUES (?, ?)";
-    global.mysqlPool.query(sql, [title, description], (error, result) => {
-        if (error) {
-            console.error("Error creating task:", error);
-            return res.status(500).json({ error: "Failed to create task" });
-        }
-        res.status(201).json({ message: "Task created successfully", taskId: result.insertId });
-    });
+    const params = [title, description];
+    await executeQuery(sql, params); // Use await for promise resolution
+    res.status(201).json({ message: "Task created successfully" });
+  } catch (error) {
+    console.error("Error creating task:", error);
+    if (error.code === "ER_DUP_ENTRY") {
+      res.status(400).json({ error: "Task with this title already exists" });
+    } else {
+      res.status(500).json({ error: "Failed to create task" }); // Generic for other errors
+    }
+  }
 });
 
 // Delete a task
-app.delete("/api/tasks/:id", (req, res) => {
+app.delete("/api/tasks/:id", async (req, res) => {
+  try {
     const taskId = req.params.id;
     const sql = "DELETE FROM tasks WHERE id = ?";
-    global.mysqlPool.query(sql, taskId, (error, result) => {
-        if (error) {
-            console.error("Error deleting task:", error);
-            return res.status(500).json({ error: "Failed to delete task" });
-        }
-        res.json({ message: "Task deleted successfully" });
-    });
+    const params = [taskId];
+    await executeQuery(sql, params);
+    res.json({ message: "Task deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    res.status(500).json({ error: "Failed to delete task" }); // Generic for other errors
+  }
 });
 
 const port = process.env.PORT || 3500;
