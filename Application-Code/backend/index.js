@@ -1,24 +1,24 @@
 const express = require("express");
 const app = express();
-const connection = require("./db"); // Assuming connection.js provides the pool
 
 // Environment variable approach (recommended)
 require('dotenv').config();
 
-// Connect to MySQL database using environment variables
-connection.connect({
+// Database connection (using dependency injection)
+const connection = require("./db")( { // Pass connection parameters
   host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USERNAME,
+  user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
-})
-.then(() => console.log("Connected to MySQL database successfully"))
-.catch((err) => {
-  console.error("Error connecting to MySQL database:", err);
-  process.exit(1); // Exit on connection error
 });
 
-// Function to execute a query with prepared statements
+if (!connection) {
+  // Handle connection error if connection is null
+  console.error('Failed to connect to MySQL database.');
+  process.exit(1);
+}
+
+// Function to execute a query with prepared statements (assuming it's in a separate file)
 const executeQuery = (sql, params) => {
   return new Promise((resolve, reject) => {
     connection.query(sql, params, (error, results) => {
@@ -32,10 +32,10 @@ const executeQuery = (sql, params) => {
   });
 };
 
-// Routes for tasks
+// Middleware
 app.use(express.json()); // Parses JSON data in the request body
 
-// Get all tasks
+// Routes for tasks
 app.get("/api/tasks", async (req, res) => {
   try {
     const sql = "SELECT * FROM tasks";
@@ -47,7 +47,6 @@ app.get("/api/tasks", async (req, res) => {
   }
 });
 
-// Create a new task
 app.post("/api/tasks", async (req, res) => {
   try {
     const { title, description } = req.body;
@@ -65,7 +64,6 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
-// Delete a task
 app.delete("/api/tasks/:id", async (req, res) => {
   try {
     const taskId = req.params.id;

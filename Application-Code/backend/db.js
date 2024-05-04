@@ -1,30 +1,24 @@
 const mysql = require('mysql2');
 
-module.exports = async () => {
-    try {
-        const connectionParams = {
-            host: process.env.MYSQL_HOST,
-            user: process.env.MYSQL_USERNAME,
-            password: process.env.MYSQL_PASSWORD,
-            database: process.env.MYSQL_DATABASE,
-        };
+// Function to create a connection pool
+module.exports = (connectionParams) => {
+  try {
+    // Create a connection pool
+    const pool = mysql.createPool(connectionParams);
 
-        // Create a connection pool
-        const pool = mysql.createPool(connectionParams);
+    // Test the connection (optional)
+    pool.getConnection((err, connection) => {
+      if (err) {
+        console.error('Error connecting to MySQL:', err);
+        return;
+      }
+      console.log('Connected to MySQL database.');
+      connection.release(); // Release the connection
+    });
 
-        // Test the connection
-        pool.getConnection((err, connection) => {
-            if (err) {
-                console.error('Error connecting to MySQL:', err);
-                return;
-            }
-            console.log('Connected to MySQL database.');
-            connection.release(); // Release the connection
-        });
-
-        // Attach the connection pool to the global object for reuse
-        global.mysqlPool = pool;
-    } catch (error) {
-        console.error('Could not connect to MySQL database.', error);
-    }
+    return pool; // Return the connection pool
+  } catch (error) {
+    console.error('Could not connect to MySQL database.', error);
+    return null; // Indicate failure (optional)
+  }
 };
