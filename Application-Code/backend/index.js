@@ -15,7 +15,7 @@ app.get('/ok', (req, res) => {
 });
 
 // Routes for tasks
-const mysql = require('mysql');
+const mysql = require('mysql2');
 
 // Get all tasks
 app.get("/api/tasks", (req, res) => {
