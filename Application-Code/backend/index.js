@@ -19,7 +19,7 @@ const mysql = require('mysql2');
 
 // Connect to MySQL database
 const pool = mysql.createPool({
-  host: 'localhost',
+  host: '192.168.61.28',
   user: 'mysql', // Updated MySQL username
   password: 'password123', // Your MySQL password
   database: 'todo',
