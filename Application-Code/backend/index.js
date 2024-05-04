@@ -16,6 +16,16 @@ app.get('/ok', (req, res) => {
 
 // Routes for tasks
 const mysql = require('mysql2');
+const mysqlPool = mysql.createPool({
+  host: 'mysql-svc',
+  user: 'admin',
+  password: 'password123',
+  database: 'todo',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
+global.mysqlPool = mysqlPool;
 
 // Get all tasks
 app.get("/api/tasks", (req, res) => {
