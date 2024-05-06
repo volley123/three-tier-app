@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My To-Do List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqj61gCWsbLwTbmVwjP4CWEjWkVQvMUvT0acjjdmCoxwqHhGkENsAzDcoy" crossorigin="anonymous">
+    <style>
+        .completed-strikethrough {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My To-Do List</h1>
+        <form method="post" action="/add">
+            <div class="form-group">
+                <label for="todo">Add New TO-DO</label>
+                <input type="text" class="form-control" id="todo" name="todo" placeholder="Enter todo">
+            </div>
+            <button type="submit" class="btn btn-primary">ADD TASK</button>
+        </form>
+        <ul class="list-group">
+            {% for todo in todos %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="{{ 'completed-strikethrough' if todo['completed'] else '' }}">{{ todo['text'] }}</span>
+                <form method="post" action="/complete/{{ todo['id'] }}">
+                    <button type="submit" class="btn btn-sm btn-outline-success">
+                        <svg width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.07 1.07L7.77 8.25a.75.75 0 0 1-1.07-.07L4.2 5.9a.75.75 0 0 1 1.07-1.07zM6.44.146A.5.5 0 0 1 6.97.5y5.79c.666.666 1.332 1.332 2 2s1.332 1.332 2 2v5.79a.5.5 0 0 1-.528.446L4.444 13.5a.5.5 0 0 1-.708-.708L6.44.146z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </form>
+                <form method="post" action="/delete/{{ todo['id'] }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <svg width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M5.79 7.146a.5.5 0 0 1 .708.708L13.708 1.708a.5.5 0 0 1 .708-.708L5.79 7.146zM2.5 8a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-6z" clip-rule="evenodd"></
