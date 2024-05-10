@@ -1,8 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: three-tier
   name: mysql
+  namespace: three-tier
+  labels:
+    app: mysql
 spec:
   replicas: 1
   selector:
@@ -17,22 +19,20 @@ spec:
         - name: mysql
           image: mysql:latest
           env:
-            - name: MYSQL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-sec
-                  key: username
             - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-sec
-                  key: password
+              value: "admin"
+            - name: MYSQL_DATABASE
+              value: "mydb"
+            - name: MYSQL_USER
+              value: "admin"
+            - name: MYSQL_PASSWORD
+              value: "admin"
           ports:
             - containerPort: 3306
           volumeMounts:
-            - name: mysql-volume
-              mountPath: /var/lib/mysql
+            - name: mysqldata
+              mountPath: /var/lib/mysql         # this is your container path from where your data will be stored
       volumes:
-        - name: mysql-volume
+        - name: mysqldata
           persistentVolumeClaim:
-            claimName: mysql-volume-claim
+            claimName: mysql-pvc    # PVC claim name

@@ -1,59 +1,21 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: api
+  name: two-tier-app-pod
   namespace: three-tier
-  labels:
-    role: api
-    env: demo
 spec:
-  replicas: 2
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 25%
-  selector:
-    matchLabels:
-      role: api
-  template:
-    metadata:
-      labels:
-        role: api
-    spec:
-      containers:
-        - name: api
-          image: 423966983147.dkr.ecr.us-east-2.amazonaws.com/three-tier-backend-app:backend-v3
-          imagePullPolicy: Always
-          env:
-            - name: MYSQL_HOST
-              value: mysql-svc
-            - name: MYSQL_PORT
-              value: "3306" # Assuming MySQL default port is used
-            - name: MYSQL_DATABASE
-              value: todo
-            - name: MYSQL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-sec
-                  key: username
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-sec
-                  key: password
-          ports:
-            - containerPort: 3500
-          livenessProbe:
-            httpGet:
-              path: /ok
-              port: 3500
-            initialDelaySeconds: 2
-            periodSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: /ok
-              port: 3500
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            successThreshold: 1
+  containers:
+  - name: two-tier-app-pod
+    image: varshil/flaskapp:latest
+    env:
+      - name: MYSQL_HOST
+        value: "10.98.19.211"          # this is your mysql's service clusture IP, Make sure to change it with yours
+      - name: MYSQL_PASSWORD
+        value: "admin"
+      - name: MYSQL_USER
+        value: "root"
+      - name: MYSQL_DB
+        value: "mydb"
+    ports:
+      - containerPort: 5000
+    imagePullPolicy: Always
